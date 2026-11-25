@@ -25,19 +25,12 @@ jobs:
         df -hT
         echo "=============================================================================="
 
-    # 增加可用磁盘空间
-    - name: Maximize build space
-      uses: easimon/maximize-build-space@master
-      with:
-
-        root-reserve-mb: 10240
-        swap-size-mb: 128
-        remove-dotnet: 'true'
-        remove-haskell: 'true'
-        # 如果空间还是不够用，可以把以下开启，清理出更多空间
-        remove-android: 'true'
-        remove-codeql: 'true'
-        build-mount-path: '/var/lib/docker/'
+    # 只删除不需要的大软件，不做 LVM 扩容（扩容会把根盘占满导致 runner 崩溃）
+    - name: Free up disk space
+      run: |
+        sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /opt/hostedtoolcache/CodeQL
+        sudo apt-get clean
+        df -hT
 
     - name: Restart docker
       run: sudo service docker restart
